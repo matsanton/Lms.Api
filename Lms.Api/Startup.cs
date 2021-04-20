@@ -16,6 +16,7 @@ using Lms.Data.Data;
 using Lms.Core.Repositories;
 using Lms.Data.Repositories;
 
+
 namespace Lms.Api
 {
     public class Startup
@@ -33,6 +34,8 @@ namespace Lms.Api
             services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson()
                 .AddXmlDataContractSerializerFormatters();
+
+            services.AddAutoMapper(typeof(MapperProfile));
 
             services.AddSwaggerGen(c =>
             {

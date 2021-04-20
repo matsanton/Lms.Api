@@ -1,4 +1,5 @@
-﻿using Lms.Core.Entities;
+﻿using AutoMapper;
+using Lms.Core.Entities;
 using Lms.Core.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,12 @@ namespace Lms.Api.Controllers
     public class CoursesController : ControllerBase
     {
         private readonly IUoW uow;
+        private readonly IMapper mapper;
 
-        public CoursesController(IUoW uow)
+        public CoursesController(IUoW uow, IMapper mapper)
         {
             this.uow = uow;
+            this.mapper = mapper;
         }
 
         [HttpGet]
