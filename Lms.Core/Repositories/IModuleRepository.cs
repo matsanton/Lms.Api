@@ -13,5 +13,6 @@ namespace Lms.Core.Repositories
         Task<Module> GetModuleForCourse(int? id);
         Task<bool> SaveAsync();
         Task AddAsync<T>(T added);
+        //void Remove<T>(T removed);
     }
 }

@@ -17,17 +17,17 @@ namespace Lms.Data.Repositories
         {
             db = context;
         }
-       
-        public Task<IEnumerable<Course>> GetAllCourses()
+        public async Task<IEnumerable<Course>> GetAllCoursesAsync(bool includeModules)
         {
-            return Task.FromResult<IEnumerable<Course>>(db.Courses);
+            return includeModules ? await db.Courses
+                                        .Include(c => c.Modules)
+                                        .ToListAsync() :
+                                    await db.Courses.ToListAsync();
         }
-
         public Task<Course> GetCourse(int? id)
         {
             return Task.FromResult<Course>(db.Courses.FirstOrDefault(c => c.Id == id));
         }
-
         public async Task<bool> SaveAsync()
         {
             return (await db.SaveChangesAsync()) >= 0;
