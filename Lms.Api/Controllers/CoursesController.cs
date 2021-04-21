@@ -2,11 +2,10 @@
 using Lms.Core.Entities;
 using Lms.Core.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Lms.Core.Dto;
 
 namespace Lms.Api.Controllers
 {
@@ -14,9 +13,11 @@ namespace Lms.Api.Controllers
     [Route("api/courses")]
     public class CoursesController : ControllerBase
     {
+        #region Private fields
         private readonly IUoW uow;
         private readonly IMapper mapper;
 
+        #endregion
         public CoursesController(IUoW uow, IMapper mapper)
         {
             this.uow = uow;
@@ -24,14 +25,15 @@ namespace Lms.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Course>>> GetCourses(bool includeModules = false)
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetAllCourses(bool includeModules = false)
         { 
-            var result = await uow.CourseRepository.GetAllCoursesAsync(includeModules);
-            return Ok(result);
+            var courses = await uow.CourseRepository.GetAllCourses(includeModules);
+            var coursesDto = mapper.Map<IEnumerable<CourseDto>>(courses); 
+            return Ok(coursesDto);
         }
 
         [HttpGet("{courseId}")]
-        public async Task<ActionResult<Course>> GetCourse(int courseId)
+        public async Task<ActionResult<CourseDto>> GetCourse(int courseId)
         {
             var course = await uow.CourseRepository.GetCourse(courseId);
 
@@ -40,38 +42,67 @@ namespace Lms.Api.Controllers
                 return NotFound();
             }
 
-            return Ok(course);
+            return Ok(mapper.Map<CourseDto>(course));
         }
 
-        [HttpPut("{id}")]
+     
+        [HttpPost]
+        public async Task<ActionResult<CourseDto>> CreateCourse(CourseDto dto)
+        {
+
+            var course = mapper.Map<Course>(dto);
+            await uow.CourseRepository.AddAsync(course);
+            if (await uow.CourseRepository.SaveAsync())
+            {
+                var model = mapper.Map<CourseDto>(course);
+                return CreatedAtAction("GetCourse", new { id = course.Id }, model);
+                // The framework's default is to delet the Async from the action name.
+                // the can be overridden in the startup class by adding an option " opt.SuppressAsyncSuffixInActionNames = false; " so the Add controller method will look like:
+                /*
+                 * services.AddControllers(opt =>
+                        {
+                            opt.ReturnHttpNotAcceptable = true;
+                            opt.SuppressAsyncSuffixInActionNames = false;
+                        })
+                 * */
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+
+        }
+
+        /*
+         * 
+           [HttpPut("{id}")]
         public async Task<IActionResult> PutCourse(int id, Course course)
         {
-           // if (id != course.Id)
-           // {
-           //     return BadRequest();
-           // }
+            if (id != course.Id)
+            {
+                return BadRequest();
+            }
 
-           //db.Entry(course).State = EntityState.Modified;
+            //db.Entry(course).State = EntityState.Modified;
 
-           // try
-           // {
-           //     await _context.SaveChangesAsync();
-           // }
-           // catch (DbUpdateConcurrencyException)
-           // {
-           //     if (!CourseExists(id))
-           //     {
-           //         return NotFound();
-           //     }
-           //     else
-           //     {
-           //         throw;
-           //     }
-           // }
+            // try
+            // {
+            //     await _context.SaveChangesAsync();
+            // }
+            // catch (DbUpdateConcurrencyException)
+            // {
+            //     if (!CourseExists(id))
+            //     {
+            //         return NotFound();
+            //     }
+            //     else
+            //     {
+            //         throw;
+            //     }
+            // }
 
             return NoContent();
         }
-        /*
         // POST: api/Courses
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]

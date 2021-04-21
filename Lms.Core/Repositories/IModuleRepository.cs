@@ -9,7 +9,7 @@ namespace Lms.Core.Repositories
 {
     public interface IModuleRepository
     {
-        Task<IEnumerable<Module>> GetAllModulesForCourse(int? id);
+        Task<IEnumerable<Module>> GetModulesForCourse(int? id);
         Task<Module> GetModuleForCourse(int? id);
         Task<bool> SaveAsync();
         Task AddAsync<T>(T added);

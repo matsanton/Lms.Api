@@ -22,7 +22,7 @@ namespace Lms.Data.Repositories
             await db.AddAsync(added);
         }
 
-        public Task<IEnumerable<Module>> GetAllModulesForCourse(int? id)
+        public Task<IEnumerable<Module>> GetModulesForCourse(int? id)
         {
             return Task.FromResult<IEnumerable<Module>>(db.Modules.Where(m => m.CourseId == id));
         }

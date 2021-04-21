@@ -17,7 +17,7 @@ namespace Lms.Data.Repositories
         {
             db = context;
         }
-        public async Task<IEnumerable<Course>> GetAllCoursesAsync(bool includeModules)
+        public async Task<IEnumerable<Course>> GetAllCourses(bool includeModules)
         {
             return includeModules ? await db.Courses
                                         .Include(c => c.Modules)

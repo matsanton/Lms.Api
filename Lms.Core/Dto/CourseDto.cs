@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lms.Core.Dto
 {
-    class CourseDto
+    public class CourseDto
     {
         public string Title { get; set; }
         public DateTime StartDate { get; set; }
