@@ -18,24 +18,25 @@ namespace Lms.Api
         {
             var host = CreateHostBuilder(args).Build();
 
-            using (var scope = host.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-                var context = services.GetRequiredService<ApplicationDbContext>();
-                context.Database.EnsureDeleted();
-                context.Database.Migrate();
+            //using (var scope = host.Services.CreateScope())
+            //{
+            //    var services = scope.ServiceProvider;
+            //    var context = services.GetRequiredService<ApplicationDbContext>();
 
-                try
-                {
-                    SeedData.InitAsync(services).Wait();
-                }
-                catch (Exception ex)
-                {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex.Message, "Seed Fail");
-                    throw;
-                }
-            }
+            //    context.Database.EnsureDeleted();
+            //    context.Database.Migrate();
+
+            //    try
+            //    {
+            //        SeedData.InitAsync(services).Wait();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        var logger = services.GetRequiredService<ILogger<Program>>();
+            //        logger.LogError(ex.Message, "Seed Fail");
+            //        throw;
+            //    }
+            //}
 
             host.Run();
         }

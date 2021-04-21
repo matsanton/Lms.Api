@@ -37,9 +37,15 @@ namespace Lms.Api
 
             services.AddAutoMapper(typeof(MapperProfile));
 
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(setupAction =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lms.Api", Version = "v1" });
+                setupAction.SwaggerDoc(
+                    "LmsOpenAPISpecification", 
+                    new OpenApiInfo 
+                    { 
+                        Title = "Lms.Api", 
+                        Version = "v1" 
+                    });
             });
 
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -54,7 +60,12 @@ namespace Lms.Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lms.Api v1"));
+                app.UseSwaggerUI(setupAction =>
+                {
+                    setupAction.SwaggerEndpoint(
+                        "/swagger/LmsOpenAPISpecification/swagger.json",
+                        "Lms.Api v1");
+                });
             }
 
             app.UseHttpsRedirection();

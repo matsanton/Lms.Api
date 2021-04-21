@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lms.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Lms.Api.Controllers
 {
@@ -24,14 +25,20 @@ namespace Lms.Api.Controllers
             this.mapper = mapper;
         }
 
+        // GET: api/courses
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseDto>>> GetAllCourses(bool includeModules = false)
-        { 
+        {
             var courses = await uow.CourseRepository.GetAllCourses(includeModules);
-            var coursesDto = mapper.Map<IEnumerable<CourseDto>>(courses); 
+            var coursesDto = mapper.Map<IEnumerable<CourseDto>>(courses);
             return Ok(coursesDto);
         }
 
+        /// <summary>
+        /// Get a cource by its id
+        /// </summary>
+        /// <param name="courseId">The id of the course you want to get</param> 
+        /// <returns>An course with Title, StarDate and EndDate fields</returns>
         [HttpGet("{courseId}")]
         public async Task<ActionResult<CourseDto>> GetCourse(int courseId)
         {
@@ -45,7 +52,6 @@ namespace Lms.Api.Controllers
             return Ok(mapper.Map<CourseDto>(course));
         }
 
-     
         [HttpPost]
         public async Task<ActionResult<CourseDto>> CreateCourse(CourseDto dto)
         {
@@ -74,8 +80,7 @@ namespace Lms.Api.Controllers
         }
 
         /*
-         * 
-           [HttpPut("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> PutCourse(int id, Course course)
         {
             if (id != course.Id)
@@ -103,16 +108,7 @@ namespace Lms.Api.Controllers
 
             return NoContent();
         }
-        // POST: api/Courses
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Course>> PostCourse(Course course)
-        {
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
-        }
+       
 
         // DELETE: api/Courses/5
         [HttpDelete("{id}")]
@@ -135,6 +131,30 @@ namespace Lms.Api.Controllers
             //return _context.Courses.Any(e => e.Id == id);
         }
          */
-    }
 
+        [HttpPatch("{courseId}")]
+        public async Task<ActionResult<CourseDto>> PatchCourse(int courseId, JsonPatchDocument<CourseDto> patchDocument)
+        {
+            // Kolla om courseId finns, annars returnera NotFound()
+            var course = new Course();
+            // Ta fram kursen som ska patchas med uow
+
+            var model = mapper.Map<CourseDto>(course);
+
+            patchDocument.ApplyTo(model, ModelState);
+
+            // Försök validera modellen returnera BadRequest om det inte går
+
+            mapper.Map(model, course);
+
+            if (await uow.CourseRepository.SaveAsync())
+            {
+                return Ok(mapper.Map<CourseDto>(course));
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+        }
+    }
 }
