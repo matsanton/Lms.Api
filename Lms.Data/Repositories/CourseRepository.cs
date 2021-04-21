@@ -24,9 +24,11 @@ namespace Lms.Data.Repositories
                                         .ToListAsync() :
                                     await db.Courses.ToListAsync();
         }
-        public Task<Course> GetCourse(int? id)
+        public async Task<Course> GetCourse(int? id)
         {
-            return Task.FromResult<Course>(db.Courses.FirstOrDefault(c => c.Id == id));
+            return await db.Courses
+                            .Include(c => c.Modules)
+                            .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task<bool> SaveAsync()
         {

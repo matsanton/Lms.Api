@@ -21,7 +21,10 @@ namespace Lms.Data.Repositories
         {
             await db.AddAsync(added);
         }
-
+        public void Remove<T>(T removed)
+        {
+            db.Remove(removed);
+        }
         public Task<IEnumerable<Module>> GetModulesForCourse(int? id)
         {
             return Task.FromResult<IEnumerable<Module>>(db.Modules.Where(m => m.CourseId == id));

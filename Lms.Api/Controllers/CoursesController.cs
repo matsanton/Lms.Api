@@ -25,7 +25,7 @@ namespace Lms.Api.Controllers
             this.mapper = mapper;
         }
 
-        // GET: api/courses
+        // GET: api/Courses
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseDto>>> GetAllCourses(bool includeModules = false)
         {
@@ -36,10 +36,11 @@ namespace Lms.Api.Controllers
 
         /// <summary>
         /// Get a cource by its id
+        /// GET: api/Courses/5
         /// </summary>
         /// <param name="courseId">The id of the course you want to get</param> 
         /// <returns>An course with Title, StarDate and EndDate fields</returns>
-        [HttpGet("{courseId}")]
+        [HttpGet("{courseId}", Name = "GetCourse")]
         public async Task<ActionResult<CourseDto>> GetCourse(int courseId)
         {
             var course = await uow.CourseRepository.GetCourse(courseId);
@@ -52,100 +53,51 @@ namespace Lms.Api.Controllers
             return Ok(mapper.Map<CourseDto>(course));
         }
 
+        // POST: api/Courses
         [HttpPost]
-        public async Task<ActionResult<CourseDto>> CreateCourse(CourseDto dto)
+        public async Task<ActionResult<CourseDto>> CreateCourse(CourseDto coursesDto)
         {
-
-            var course = mapper.Map<Course>(dto);
+            var course = mapper.Map<Course>(coursesDto);
             await uow.CourseRepository.AddAsync(course);
-            if (await uow.CourseRepository.SaveAsync())
+            await uow.CompleteAsync();
+            return CreatedAtAction("GetCourse", new { courseId = course.Id }, course);
+        }
+
+        // PUT: api/Courses/5
+        [HttpPut("{courseId}")]
+        public async Task<IActionResult> UpdateCourse(int courseId, CourseDto courseDto)
+        {
+            var course = await uow.CourseRepository.GetCourse(courseId);
+
+            if (course == null)
             {
-                var model = mapper.Map<CourseDto>(course);
-                return CreatedAtAction("GetCourse", new { id = course.Id }, model);
-                // The framework's default is to delet the Async from the action name.
-                // the can be overridden in the startup class by adding an option " opt.SuppressAsyncSuffixInActionNames = false; " so the Add controller method will look like:
-                /*
-                 * services.AddControllers(opt =>
-                        {
-                            opt.ReturnHttpNotAcceptable = true;
-                            opt.SuppressAsyncSuffixInActionNames = false;
-                        })
-                 * */
-            }
-            else
-            {
-                return StatusCode(500);
+                return NotFound();
             }
 
+            mapper.Map(courseDto, course);
+
+            await uow.CompleteAsync();
+            return Ok(courseDto);
         }
-
-        /*
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCourse(int id, Course course)
-        {
-            if (id != course.Id)
-            {
-                return BadRequest();
-            }
-
-            //db.Entry(course).State = EntityState.Modified;
-
-            // try
-            // {
-            //     await _context.SaveChangesAsync();
-            // }
-            // catch (DbUpdateConcurrencyException)
-            // {
-            //     if (!CourseExists(id))
-            //     {
-            //         return NotFound();
-            //     }
-            //     else
-            //     {
-            //         throw;
-            //     }
-            // }
-
-            return NoContent();
-        }
-       
-
-        // DELETE: api/Courses/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCourse(int id)
-        {
-            //var course = await _context.Courses.FindAsync(id);
-            //if (course == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //_context.Courses.Remove(course);
-            //await _context.SaveChangesAsync();
-
-            //return NoContent();
-        }
-
-        private bool CourseExists(int id)
-        {
-            //return _context.Courses.Any(e => e.Id == id);
-        }
-         */
 
         [HttpPatch("{courseId}")]
         public async Task<ActionResult<CourseDto>> PatchCourse(int courseId, JsonPatchDocument<CourseDto> patchDocument)
         {
-            // Kolla om courseId finns, annars returnera NotFound()
-            var course = new Course();
-            // Ta fram kursen som ska patchas med uow
+            var course = await uow.CourseRepository.GetCourse(courseId);
+            if (course == null)
+            {
+                return NotFound();
+            }
 
-            var model = mapper.Map<CourseDto>(course);
+            var courseDto = mapper.Map<CourseDto>(course);
 
-            patchDocument.ApplyTo(model, ModelState);
+            patchDocument.ApplyTo(courseDto, ModelState);
+            if (!TryValidateModel(courseDto))
+            {
+                return BadRequest();
+            }
 
-            // Försök validera modellen returnera BadRequest om det inte går
-
-            mapper.Map(model, course);
+            mapper.Map(courseDto, course);
 
             if (await uow.CourseRepository.SaveAsync())
             {
@@ -156,5 +108,22 @@ namespace Lms.Api.Controllers
                 return StatusCode(500);
             }
         }
+
+        // DELETE: api/Courses/5
+        [HttpDelete("{courseId}")]
+        public async Task<IActionResult> DeleteCourse(int courseId)
+        {
+            var course = await uow.CourseRepository.GetCourse(courseId);
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            uow.CourseRepository.Remove(course);
+            await uow.CompleteAsync();
+
+            return NoContent();
+        }
+
     }
 }
